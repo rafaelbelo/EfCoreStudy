@@ -1,4 +1,5 @@
 ﻿using EfCoreEmployees.Data;
+using EfcoreEmployees.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace EfCoreEmployees
@@ -55,6 +56,19 @@ namespace EfCoreEmployees
             using var db = new EmployeesContext();
             var canConnect = db.Database.CanConnect();
             Console.WriteLine(canConnect);
+        }
+
+        static void AddWithExecutionStrategy()
+        {
+            using var db = new EmployeesContext();
+            var strategy = db.Database.CreateExecutionStrategy();
+            strategy.Execute(() =>
+            {
+                using var transaction = db.Database.BeginTransaction();
+                db.Departments.Add(new Department { Id = Guid.NewGuid(), Name="Engineering" });
+                db.SaveChanges();
+                transaction.Commit();
+            });            
         }
     }
 }

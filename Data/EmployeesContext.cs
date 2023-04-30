@@ -13,9 +13,14 @@ public class EmployeesContext : DbContext
     {
         const string cn = "Data source=localhost,1433; Initial Catalog=EmpDb; User ID=sa; Password=SQLp@ssw0rd; Encrypt=false; TrustServerCertificate=false";
         optionsBuilder
-            .UseSqlServer(cn)
+            .UseSqlServer(cn, options => options
+                // How many operations in a single command when SaveChanges is called (default is 42)
+                .MaxBatchSize(50)
+                // EF's Retry on failure, with many options. Enabling this should, however, be paired with an execution strategy, to avoid problems of data (see AddWithExecutionStrategy())
+                .EnableRetryOnFailure(4, TimeSpan.FromSeconds(5), null)
+                )
             // To Log the parameter values of the sql commands
-            .EnableSensitiveDataLogging()
+            .EnableSensitiveDataLogging()            
             .LogTo(Console.WriteLine, LogLevel.Information);
     }
 }
