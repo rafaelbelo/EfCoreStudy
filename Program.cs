@@ -1,6 +1,8 @@
 ﻿using EfCoreEmployees.Data;
 using EfcoreEmployees.Domain;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
+using System;
 
 namespace EfCoreEmployees
 {
@@ -13,8 +15,11 @@ namespace EfCoreEmployees
         // dotnet ef migrations add InitialCreate
 
         static void Main(string[] args)
-        {
-            HealthCheckCanConnect();
+        {            
+            //EnsureDeletedDatabase();
+            //EnsureCreatedDatabase();
+            //BatchAddSample();
+            QueryTest();
         }
 
         // Creates Database, can use migration, but does not need it
@@ -68,7 +73,32 @@ namespace EfCoreEmployees
                 db.Departments.Add(new Department { Id = Guid.NewGuid(), Name="Engineering" });
                 db.SaveChanges();
                 transaction.Commit();
-            });            
+            });        
+        }
+
+        static void BatchAddSample()
+        {
+            using var db = new EmployeesContext();
+            var emps = new List<Employee>();
+            for (int i = 1; i < 10001; i++)
+            {
+                emps.Add(new Employee{Id = Guid.NewGuid(), BirthDate = DateTime.Now, Identification = i.ToString(), Name = $"Arnold {i}"});
+            }
+
+            db.Departments.Add(new Department { Id = Guid.NewGuid(), Name="Engineering", Employees = emps });
+            db.SaveChanges();
+        }
+
+        static void QueryTest()
+        {
+            using var db = new EmployeesContext();
+            var emps = new List<Employee>();
+
+            var sw = Stopwatch.StartNew();
+            var result = db.Employees.FirstOrDefault(e => e.Name.StartsWith("A"));
+            //var result2 = db.Employees.Where(e => e.Name.StartsWith("A")).FirstOrDefault();
+            Console.Write(sw.ElapsedMilliseconds);
+            sw.Stop();
         }
     }
 }
